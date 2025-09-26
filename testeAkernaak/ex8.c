@@ -71,7 +71,7 @@ int main(int argc, char *argv[])
     /* --- INICIO DA LOGICA DA ATIVIDADE --- */
     
     // 1. Inicializa o sistema de sorteio
-    exN_init();
+    ex8_init();
     
     printf("Simulador de Sorteio de Frases do Jogo Akernaak\n");
     printf("--------------------------------------------------\n\n");
