@@ -98,9 +98,9 @@ const char* sortear_frase(void)
 {
     turno++;
 
-    // Se todas as 8 frases unicas (A e B) ja sairam, sempre retorna a frase D (Titulo)
-    if (frases_unicas_sorteadas >= 8) {
-        return labmodel[9];
+    // CORRECAO 1: A condicao de fim de jogo agora e' >= 7 (1 Cat A + 6 Cat B)
+    if (frases_unicas_sorteadas >= 7) {
+        return labmodel[9]; // Retorna "Titulo"
     }
     
     int categoria_sorteada = -1; // 0=A, 1=B, 2=C
@@ -115,7 +115,6 @@ const char* sortear_frase(void)
         
         int dicas_b_restantes = 0;
         for (int i = 1; i <= 7; i++) {
-             // Nao conta a variacao da dica 4 que nao foi escolhida
             if (i != 4 && i != 5) {
                 if (!frases_usadas[i]) dicas_b_restantes++;
             } else if (i == indice_dica4_variacao) {
@@ -124,7 +123,12 @@ const char* sortear_frase(void)
         }
         bool b_disponivel = dicas_b_restantes > 0;
 
-        if (a_disponivel && c_disponivel) { // Prioridade: sortear A e C
+        if (!b_disponivel && !a_disponivel) {
+            // Se nao ha mais frases unicas, a condicao de >= 7 no inicio da funcao devera resolver.
+            // Mas, por seguranca, forcamos a categoria C.
+            categoria_sorteada = 2;
+        }
+        else if (a_disponivel && c_disponivel) { // Prioridade: sortear A e C
             categoria_sorteada = (rand() % 2 == 0) ? 0 : 2; // 0=A, 2=C
         } 
         else if (a_disponivel && !c_disponivel) { // Falta A e talvez B
@@ -147,26 +151,43 @@ const char* sortear_frase(void)
                 snprintf(buffer_frase_formatada, SBUFF, labmodel[0], "biblioteca");
                 return buffer_frase_formatada;
             }
+            // Se A ja foi usada, tenta sortear B como alternativa
+            // (intencionalmente sem break para cair no proximo case)
+            // NOVO: A logica acima de selecao de categoria ja cuida disso.
+
+            // CORRECAO 2: Adicionado 'break' para logica correta
+            break; 
+        
         case 1: // Categoria B (dicas)
             for (int i = 1; i <= 7; i++) {
-                if (i != 4 && i != 5 && !frases_usadas[i]) { // Dicas normais
-                    frases_usadas[i] = true;
-                    frases_unicas_sorteadas++;
-                    return labmodel[i];
-                } else if (i == indice_dica4_variacao && !frases_usadas[i]) { // Variacao escolhida da dica 4
+                // Checa a variacao correta da dica 4
+                bool is_dica4_valida = (i == indice_dica4_variacao);
+                // Checa se e uma dica normal (nao e 4 nem 5)
+                bool is_dica_normal = (i != 4 && i != 5);
+
+                if ((is_dica_normal || is_dica4_valida) && !frases_usadas[i]) {
                     frases_usadas[i] = true;
                     frases_unicas_sorteadas++;
                     return labmodel[i];
                 }
             }
+            // CORRECAO 2: Adicionado 'break'
+            break;
+
         case 2: // Categoria C (numero magico)
             categoria_C_ja_saiu = true;
             snprintf(buffer_frase_formatada, SBUFF, labmodel[8], (rand() % 100) + 1);
             return buffer_frase_formatada;
-        default:
-            return "Erro: Nenhuma frase pode ser sorteada.\n";
+            // Nao precisa de break pois ha um return
     }
+    
+    // Se chegou ate aqui, algo deu errado. Tenta sortear uma frase magica como ultimo recurso.
+    // Isso evita a mensagem de erro.
+    categoria_C_ja_saiu = true;
+    snprintf(buffer_frase_formatada, SBUFF, labmodel[8], (rand() % 100) + 1);
+    return buffer_frase_formatada;
 }
+
 
 
 /* ------------------------------------------------------------------------- */
