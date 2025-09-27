@@ -254,8 +254,8 @@ RedePetri* criar_rede_petri(int lugares, int transicoes)
     RedePetri *rede = (RedePetri*)malloc(sizeof(RedePetri));
     if (!rede) return NULL;
 
-    rede->num_lugares = lugares;
-    rede->num_transicoes = transicoes;
+    rede->n_lugares = lugares;
+    rede->n_transicoes = transicoes;
     rede->lugares = NULL;
     rede->transicoes = NULL;
     rede->arcos_LT = NULL;
@@ -276,7 +276,7 @@ void adicionar_lugar(RedePetri *rede, int id, int tokens_iniciais)
     novo->max_tokens = tokens_iniciais;
     novo->min_tokens = tokens_iniciais;
     novo->soma_tokens = tokens_iniciais;
-    novo->num_amostras = 1;
+    novo->n_amostras = 1;
     novo->prox = rede->lugares;
     rede->lugares = novo;
 }
@@ -381,7 +381,7 @@ void executar_transicao(RedePetri *rede, int transicao_id)
                     lugar->min_tokens = lugar->tokens;
                 }
                 lugar->soma_tokens += lugar->tokens;
-                lugar->num_amostras++;
+                lugar->n_amostras++;
             }
         }
         arco = arco->prox;
@@ -403,7 +403,7 @@ void executar_transicao(RedePetri *rede, int transicao_id)
                     lugar->max_tokens = lugar->tokens;
                 }
                 lugar->soma_tokens += lugar->tokens;
-                lugar->num_amostras++;
+                lugar->n_amostras++;
             }
         }
         arco = arco->prox;
@@ -480,7 +480,7 @@ void imprimir_estatisticas(RedePetri *rede)
     Lugar *lugar = rede->lugares;
     while (lugar)
     {
-        double media = (double)lugar->soma_tokens / lugar->num_amostras;
+        double media = (double)lugar->soma_tokens / lugar->n_amostras;
         printf("L%d: atual=%d, max=%d, min=%d, média=%.2f\n",
                lugar->id, lugar->tokens, lugar->max_tokens,
                lugar->min_tokens, media);

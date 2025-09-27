@@ -114,7 +114,7 @@ typedef struct lugar {
     int max_tokens;
     int min_tokens;
     long long soma_tokens;
-    int num_amostras;
+    int n_amostras;
     struct lugar *prox;
 } Lugar;
 
@@ -126,8 +126,8 @@ typedef struct transicao {
 } Transicao;
 
 typedef struct rede_petri {
-    int num_lugares;
-    int num_transicoes;
+    int n_lugares;
+    int n_transicoes;
     Lugar *lugares;
     Transicao *transicoes;
     Arco *arcos_LT;
