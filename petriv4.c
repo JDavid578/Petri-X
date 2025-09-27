@@ -1,5 +1,5 @@
 /***************************************************************************
- * petriv4.c                                  Version 20240927.150000    *
+ * petriv4.c                                  Version 20240927.153000    *
  * *
  * Simulador de rede de Petri (Funcional e aprimorado)                     *
  * Copyright (C) 2024         by Ruben Carlo Benante & Gemini              *
@@ -88,7 +88,7 @@ void simular_rede(RedePetri *rede, int max_iteracoes) {
             break;
         }
 
-        int alguma_executou = 0;
+        // Embaralha as transições habilitadas para garantir aleatoriedade
         for(int k = 0; k < n_habilitadas; k++) {
             int j = rand() % n_habilitadas;
             Transicao *temp = habilitadas[k];
@@ -96,11 +96,11 @@ void simular_rede(RedePetri *rede, int max_iteracoes) {
             habilitadas[j] = temp;
         }
         
+        // Tenta disparar a primeira que "quer"
         for(int k = 0; k < n_habilitadas; k++) {
             if ((double)rand() / RAND_MAX < TRANSITION_PROBABILITY) {
                  executar_transicao(rede, habilitadas[k]->id);
-                 alguma_executou = 1;
-                 break;
+                 break; // Sai do loop assim que uma é executada
             }
         }
         
@@ -164,7 +164,7 @@ void executar_transicao(RedePetri *rede, int transicao_id) {
 
 
 /* ---------------------------------------------------------------------- */
-/* Funções de Leitura da Rede (sem alterações) */
+/* Funções de Leitura da Rede */
 /* ---------------------------------------------------------------------- */
 
 RedePetri* ler_rede_arquivo(const char *arquivo) {
@@ -324,7 +324,7 @@ void liberar_rede(RedePetri *rede) {
 }
 
 /* ---------------------------------------------------------------------- */
-/* Funções de Ajuda e Copyright (sem alterações) */
+/* Funções de Ajuda e Copyright */
 /* ---------------------------------------------------------------------- */
 void help(const char *prog_name) {
     printf("Simulador de Rede de Petri - Versão %s\n", VERSION);
