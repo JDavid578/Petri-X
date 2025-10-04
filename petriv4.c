@@ -21,7 +21,7 @@ int main(int argc, char *argv[]) {
     int opt;
     char *arquivo = NULL;
     RedePetri *rede = NULL;
-    int max_iteracoes = 1000;
+    int max_iteracoes = 100000;
 
     opterr = 0;
     while ((opt = getopt(argc, argv, "vhVf:")) != EOF) {

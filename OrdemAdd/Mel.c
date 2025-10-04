@@ -1,5 +1,5 @@
 /* ---------------------------------------------------------------------- */
-/* Funções de Criação e Liberação de Memória | Vai ser a primeira parte p adicionar*/ 
+/* Funções de Criação e Liberação de Memória | Vai ser a primeira parte p adicionar*/
 /* ---------------------------------------------------------------------- */
 
 RedePetri* criar_rede_petri(int lugares, int transicoes) {
