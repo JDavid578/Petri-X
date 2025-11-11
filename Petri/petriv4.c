@@ -95,7 +95,6 @@ void simular_rede(RedePetri *rede, int max_iteracoes) {
             habilitadas[k] = habilitadas[j];
             habilitadas[j] = temp;
         }
-        
         // Tenta disparar a primeira que "quer"
         for(int k = 0; k < n_habilitadas; k++) {
             if ((double)rand() / RAND_MAX < TRANSITION_PROBABILITY) {
@@ -103,7 +102,6 @@ void simular_rede(RedePetri *rede, int max_iteracoes) {
                  break; // Sai do loop assim que uma é executada
             }
         }
-        
         rede->iteracoes++;
 
         Lugar *lugar = rede->lugares;
@@ -151,7 +149,6 @@ void executar_transicao(RedePetri *rede, int transicao_id) {
         }
         arco_tl = arco_tl->prox;
     }
-    
     Transicao *t = rede->transicoes;
     while(t) {
         if (t->id == transicao_id) {
