@@ -28,7 +28,7 @@
 #ifndef VISTAR_H
 #define VISTAR_H
 
-#include <ncurses.h>
+#include "libvistar.h"
 
 // --- Constantes Globais ---
 #define MAX_LINES 1000
@@ -51,21 +51,21 @@ typedef struct
 typedef struct
 {
     char **lines;
-    int nlines;
+    int num_lines;
     int max_lines;
     char filename[FILENAME_MAX_LEN];
-    int modified;
-    EditorMarker markers[10];
+    int modif;
+    EditorMarker marker[10];
 } TextBuffer;
 
 typedef struct
 {
     unsigned long x;
     int y;
-    int top_line;
+    int top_linha;
     unsigned long mark_x;
     int mark_y;
-    int selecting_block;
+    int select_block;
 } Cursor;
 
 typedef struct line_st
@@ -88,8 +88,8 @@ typedef struct pos_st
 
 typedef struct search_st
 {
-    char salva[MAX_COLS];
-    POS posicao[MAX_LINES * 10];
+    char save[MAX_COLS]; // (salva[MAX_COLS])
+    POS pos[MAX_LINES * 10];  // (posicao[MAX_LINES * 10])
     int total;
     int atual;//indice da ocorrencia atual
 } SEARCH;

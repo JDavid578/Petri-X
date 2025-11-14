@@ -40,7 +40,7 @@ TextBuffer *buffer_create(void)
     }
 
     buf->max_lines = MAX_LINES;
-    buf->nlines = 1;
+    buf->num_lines = 1;
     buf->lines = malloc(sizeof(char*) * buf->max_lines);
     if(!buf->lines)
     {
@@ -61,15 +61,15 @@ TextBuffer *buffer_create(void)
         return NULL;
     }
 
-    buf->modified = 0;
+    buf->modif = 0;
     buf->filename[0] = '\0';
 
     // Inicialização dos marcadores de posição
     for(int i = 0; i < 10; i++)
     {
-        buf->markers[i].active = 0;
-        buf->markers[i].x = 0;
-        buf->markers[i].y = 0;
+        buf->marker[i].active = 0;
+        buf->marker[i].x = 0;
+        buf->marker[i].y = 0;
     }
 
     return buf;
@@ -79,7 +79,7 @@ void buffer_free(TextBuffer *buf)
 {
     if(!buf) return;
 
-    for(int i = 0; i < buf->nlines; i++)
+    for(int i = 0; i < buf->num_lines; i++)
     {
         free(buf->lines[i]);
         buf->lines[i] = NULL;
@@ -95,7 +95,7 @@ void buffer_free(TextBuffer *buf)
 int buffer_insert_char(TextBuffer *buf, Cursor *cursor, int c)
 {
     if(!buf || !cursor) return 0;
-    if(cursor->y >= buf->nlines || cursor->y < 0) return 0;
+    if(cursor->y >= buf->num_lines || cursor->y < 0) return 0;
 
     char *line = buf->lines[cursor->y];
     int current_len = strlen(line);
@@ -118,7 +118,7 @@ int buffer_insert_char(TextBuffer *buf, Cursor *cursor, int c)
     buf->lines[cursor->y] = new_line;
 
     cursor->x++;
-    buf->modified = 1;
+    buf->modif = 1;
 
     return 1;
 }
@@ -126,7 +126,7 @@ int buffer_insert_char(TextBuffer *buf, Cursor *cursor, int c)
 int buffer_delete_char(TextBuffer *buf, Cursor *cursor, bool is_help_visible)   // Deleta à esquerda (Backspace)
 {
     if(!buf || !cursor) return 0;
-    if(cursor->y >= buf->nlines || cursor->y < 0) return 0;
+    if(cursor->y >= buf->num_lines || cursor->y < 0) return 0;
 
     char *current_line = buf->lines[cursor->y];
     int current_len = strlen(current_line);
@@ -145,7 +145,7 @@ int buffer_delete_char(TextBuffer *buf, Cursor *cursor, bool is_help_visible)   
         free(buf->lines[cursor->y]);
         buf->lines[cursor->y] = new_line;
         cursor->x--;
-        buf->modified = 1;
+        buf->modif = 1;
         return 1;
     }
     else
@@ -171,21 +171,21 @@ int buffer_delete_char(TextBuffer *buf, Cursor *cursor, bool is_help_visible)   
 
         free(buf->lines[cursor->y]);
 
-        for(int i = cursor->y; i < buf->nlines - 1; i++)
+        for(int i = cursor->y; i < buf->num_lines - 1; i++)
             buf->lines[i] = buf->lines[i + 1];
-        buf->lines[buf->nlines - 1] = NULL;
-        buf->nlines--;
+        buf->lines[buf->num_lines - 1] = NULL;
+        buf->num_lines--;
 
         cursor->y--;
         cursor->x = prev_len;
-        if(is_help_visible && buf->nlines <= HELP_LINES)
+        if(is_help_visible && buf->num_lines <= HELP_LINES)
         {
-            buffer_insert_line(buf, HELP_LINES, "");
+            buffer_inserir_linha(buf, HELP_LINES, "");
             cursor->y = HELP_LINES;
             cursor->x = 0;
         }
 
-        buf->modified = 1;
+        buf->modif = 1;
         return 1;
     }
 }
@@ -200,17 +200,17 @@ int buffer_open_file(TextBuffer *buf, const char *filename)
     if(!f)
         return 0;
 
-    for(int i = 0; i < buf->nlines; i++)
+    for(int i = 0; i < buf->num_lines; i++)
     {
         free(buf->lines[i]);
         buf->lines[i] = NULL;
     }
-    buf->nlines = 0;
+    buf->num_lines = 0;
 
     char line_buffer[MAX_COLS];
     while(fgets(line_buffer, MAX_COLS, f))
     {
-        if(buf->nlines >= buf->max_lines)
+        if(buf->num_lines >= buf->max_lines)
         {
             fprintf(stderr, "libvistar: Atingido o limite máximo de linhas (%d) ao abrir o arquivo.\n", buf->max_lines);
             break;
@@ -224,18 +224,18 @@ int buffer_open_file(TextBuffer *buf, const char *filename)
                 line_buffer[len - 2] = '\0';
         }
 
-        buf->lines[buf->nlines] = strdup(line_buffer);
-        if(!buf->lines[buf->nlines])
+        buf->lines[buf->num_lines] = strdup(line_buffer);
+        if(!buf->lines[buf->num_lines])
         {
             perror("libvistar: Falha ao strdup em buffer_open_file");
             fclose(f);
             return 0;
         }
-        buf->nlines++;
+        buf->num_lines++;
     }
     fclose(f);
 
-    if(buf->nlines == 0)
+    if(buf->num_lines == 0)
     {
         buf->lines[0] = calloc(1, 1);
         if(!buf->lines[0])
@@ -243,12 +243,12 @@ int buffer_open_file(TextBuffer *buf, const char *filename)
             perror("libvistar: Falha ao alocar linha vazia após abrir arquivo");
             return 0;
         }
-        buf->nlines = 1;
+        buf->num_lines = 1;
     }
 
     strncpy(buf->filename, filename, FILENAME_MAX_LEN - 1);
     buf->filename[FILENAME_MAX_LEN - 1] = '\0';
-    buf->modified = 0;
+    buf->modif = 0;
     return 1;
 }
 
@@ -260,7 +260,7 @@ int buffer_save_file(TextBuffer *buf, const char *filename)
     if(!f)
         return 0;
 
-    for(int i = 0; i < buf->nlines; i++)
+    for(int i = 0; i < buf->num_lines; i++)
     {
         if(fprintf(f, "%s\n", buf->lines[i]) < 0)
         {
@@ -273,7 +273,7 @@ int buffer_save_file(TextBuffer *buf, const char *filename)
 
     strncpy(buf->filename, filename, FILENAME_MAX_LEN - 1);
     buf->filename[FILENAME_MAX_LEN - 1] = '\0';
-    buf->modified = 0;
+    buf->modif = 0;
     return 1;
 }
 
@@ -283,7 +283,7 @@ int buffer_save_file(TextBuffer *buf, const char *filename)
 
 void buffer_delete_char_right(TextBuffer *buf, Cursor *cursor, bool is_help_visible)
 {
-    if(!buf || !cursor || cursor->y >= buf->nlines)
+    if(!buf || !cursor || cursor->y >= buf->num_lines)
     {
         return; // Proteção contra ponteiros nulos
     }
@@ -298,11 +298,11 @@ void buffer_delete_char_right(TextBuffer *buf, Cursor *cursor, bool is_help_visi
         memmove(&line[cursor->x], &line[cursor->x + 1], len - cursor->x);
 
         // O terminador nulo '\0' também é movido, então a string é encurtada.
-        buf->modified = 1;
+        buf->modif = 1;
     }
     // Caso 2: O cursor está EXATAMENTE no final da linha
     else
-        if(cursor->x == len && cursor->y < buf->nlines - 1)
+        if(cursor->x == len && cursor->y < buf->num_lines - 1)
         {
 
             // Movemos o cursor para o início da próxima linha.
@@ -318,7 +318,7 @@ void buffer_delete_char_right(TextBuffer *buf, Cursor *cursor, bool is_help_visi
 
 void buffer_delete_word_right(TextBuffer *buf, Cursor *cursor)
 {
-    if(!buf || !cursor || cursor->y >= buf->nlines)
+    if(!buf || !cursor || cursor->y >= buf->num_lines)
     {
         return; // Validação
     }
@@ -346,7 +346,7 @@ void buffer_delete_word_right(TextBuffer *buf, Cursor *cursor)
         // Desloca a parte restante da linha (incluindo o terminador nulo)
         // para a posição original do cursor.
         memmove(&line[original_x], &line[idx_apos_delecao], len - idx_apos_delecao + 1);
-        buf->modified = 1;
+        buf->modif = 1;
     }
 }
 
@@ -355,7 +355,7 @@ void buffer_delete_word_right(TextBuffer *buf, Cursor *cursor)
 
 void buffer_delete_current_line(TextBuffer *buf, Cursor *cursor, bool is_help_visible)
 {
-    if(!buf || !cursor || buf->nlines == 0 || cursor->y >= buf->nlines)
+    if(!buf || !cursor || buf->num_lines == 0 || cursor->y >= buf->num_lines)
     {
         return; // Não há o que deletar
     }
@@ -365,24 +365,24 @@ void buffer_delete_current_line(TextBuffer *buf, Cursor *cursor, bool is_help_vi
     buf->lines[cursor->y] = NULL; // Boa prática
 
     // 2. Se não for a última linha do buffer
-    if(cursor->y < buf->nlines - 1)
+    if(cursor->y < buf->num_lines - 1)
     {
         memmove(&buf->lines[cursor->y],
                 &buf->lines[cursor->y + 1],
-                (buf->nlines - 1 - cursor->y) * sizeof(char*));
+                (buf->num_lines - 1 - cursor->y) * sizeof(char*));
     }
 
     // 3. Decrementa o número de linhas
-    buf->nlines--;
+    buf->num_lines--;
 
-    if(buf->nlines > 0)    // Se ainda restam linhas
+    if(buf->num_lines > 0)    // Se ainda restam linhas
     {
-        buf->lines[buf->nlines] = NULL; // O antigo último slot
+        buf->lines[buf->num_lines] = NULL; // O antigo último slot
     }
 
 
     // 4. Se o buffer ficou completamente vazio (nlines se tornou 0)
-    if(buf->nlines == 0)
+    if(buf->num_lines == 0)
     {
         buf->lines[0] = calloc(1, 1); // Adiciona uma nova linha vazia
         if(!buf->lines[0])
@@ -390,18 +390,18 @@ void buffer_delete_current_line(TextBuffer *buf, Cursor *cursor, bool is_help_vi
             perror("libvistar: buffer_delete_current_line: falha ao alocar linha vazia");
             return;
         }
-        buf->nlines = 1; //Agora temos uma linha novamente
+        buf->num_lines = 1; //Agora temos uma linha novamente
         cursor->y = 0;   // Posiciona o cursor na nova linha vazia
     }
     else
     {
         // 5. Ajusta a posição Y do cursor se ele estava na última linha (que foi removida)
-        if(cursor->y >= buf->nlines)
-            cursor->y = buf->nlines - 1;
+        if(cursor->y >= buf->num_lines)
+            cursor->y = buf->num_lines - 1;
     }
 
     // 6. Ajusta a posição X do cursor para não ficar fora da linha atual (que pode ter mudado)
-    if(cursor->y < buf->nlines && buf->lines[cursor->y] != NULL)
+    if(cursor->y < buf->num_lines && buf->lines[cursor->y] != NULL)
     {
         unsigned long current_line_len = strlen(buf->lines[cursor->y]);
         if(cursor->x > current_line_len)
@@ -410,14 +410,14 @@ void buffer_delete_current_line(TextBuffer *buf, Cursor *cursor, bool is_help_vi
     else
         cursor->x = 0;
 
-    if(is_help_visible && buf->nlines <= HELP_LINES)
+    if(is_help_visible && buf->num_lines <= HELP_LINES)
     {
-        buffer_insert_line(buf, HELP_LINES, "");
+        buffer_inserir_linha(buf, HELP_LINES, "");
         cursor->y = HELP_LINES;
         cursor->x = 0;
     }
 
-    buf->modified = 1; // Marca o buffer como modificado
+    buf->modif = 1; // Marca o buffer como modificado
 }
 
 // --- Funções de Auxilio ---
@@ -563,7 +563,7 @@ void putSTsaved(page_st saved, TextBuffer *buf, Cursor *cursor)
 
 int buffer_insert_line(TextBuffer *buf, int y, const char *str)
 {
-    if(!buf || !str || y < 0 || y > buf->nlines || buf->nlines >=  buf->max_lines)
+    if(!buf || !str || y < 0 || y > buf->num_lines || buf->num_lines >=  buf->max_lines)
         return 0;
     int len = strlen(str);
 
@@ -579,12 +579,12 @@ int buffer_insert_line(TextBuffer *buf, int y, const char *str)
     new_line[len] = '\0';
 
     //desloca linhas para baixo
-    for(int i = buf->nlines; i > y; i--)
+    for(int i = buf->num_lines; i > y; i--)
         buf->lines[i] = buf->lines[i - 1];
     //insere nova linha
     buf->lines[y] = new_line;
-    buf->nlines++;
-    buf->modified = 1;
+    buf->num_lines++;
+    buf->modif = 1;
 
     return 1;
 }
@@ -640,7 +640,7 @@ int buffer_save_file_without_help(TextBuffer *buf, const char *filename, bool is
         start_line = HELP_LINES;
 
     // Itera a partir da 'start_line' em vez de 0.
-    for(int i = start_line; i < buf->nlines; i++)
+    for(int i = start_line; i < buf->num_lines; i++)
     {
         if(fprintf(f, "%s\n", buf->lines[i]) < 0)
         {
@@ -655,7 +655,7 @@ int buffer_save_file_without_help(TextBuffer *buf, const char *filename, bool is
     // Atualiza o estado do buffer para refletir que foi salvo.
     strncpy(buf->filename, filename, FILENAME_MAX_LEN - 1);
     buf->filename[FILENAME_MAX_LEN - 1] = '\0';
-    buf->modified = 0; // Opcional: considerar se salvar com ajuda ainda conta como "salvo"
+    buf->modif = 0; // Opcional: considerar se salvar com ajuda ainda conta como "salvo"
 
     return 1;
 }
@@ -663,7 +663,7 @@ int buffer_save_file_without_help(TextBuffer *buf, const char *filename, bool is
 void buffer_reset(TextBuffer *buf)
 {
     if(!buf) return;
-    for(int i = 0; i < buf->nlines; i++)
+    for(int i = 0; i < buf->num_lines; i++)
     {
         if(buf->lines[i] != NULL)
         {
@@ -671,25 +671,25 @@ void buffer_reset(TextBuffer *buf)
             buf->lines[i] = NULL;
         }
     }
-    buf->nlines = 1;
+    buf->num_lines = 1;
     buf->lines[0] = calloc(1, 1);
     if(!buf->lines[0])
     {
         perror("libvistar: Falha ao alocar linha em buffer_reset");
-        buf->nlines = 0;
+        buf->num_lines = 0;
         return;
     }
-    buf->modified = 0;
+    buf->modif = 0;
     buf->filename[0] = '\0';
     for(int i = 0; i < 10; i++)
-        buf->markers[i].active = 0;
+        buf->marker[i].active = 0;
 }
 void remove_Help_screen(TextBuffer *buf, Cursor *cursor, int y_pos)
 {
     if(!buf || !cursor)
         return;
 
-    if(y_pos < 0 || y_pos >= buf->nlines)
+    if(y_pos < 0 || y_pos >= buf->num_lines)
         return;
     int saved_x = cursor->x;
     int saved_y = cursor->y - HELP_LINES;
@@ -697,13 +697,13 @@ void remove_Help_screen(TextBuffer *buf, Cursor *cursor, int y_pos)
     for(int i = 0; i < HELP_LINES; i++)
     {
         int target_line = y_pos;
-        if(target_line >= buf->nlines)
+        if(target_line >= buf->num_lines)
             break;
         free(buf->lines[target_line]);
-        for(int j = target_line; j < buf->nlines; j++)
+        for(int j = target_line; j < buf->num_lines; j++)
             buf->lines[j] = buf->lines[j + 1];
-        buf->lines[buf->nlines - 1] = NULL;
-        buf->nlines--;
+        buf->lines[buf->num_lines - 1] = NULL;
+        buf->num_lines--;
     }
     if(cursor->y >= y_pos)
     {
@@ -713,7 +713,7 @@ void remove_Help_screen(TextBuffer *buf, Cursor *cursor, int y_pos)
             cursor->y = 0;
         cursor->x = 0;
     }
-    buf->modified = 1;
+    buf->modif = 1;
     cursor->x = saved_x;
     cursor->y = saved_y;
 }
@@ -721,10 +721,10 @@ void remove_Help_screen(TextBuffer *buf, Cursor *cursor, int y_pos)
 // Adiciona uma nova linha no buffer na posição do cursor
 void buffer_insert_newline(TextBuffer *buf, Cursor *cursor)
 {
-    if(!buf || !cursor || cursor->y >= buf->nlines) return;
+    if(!buf || !cursor || cursor->y >= buf->num_lines) return;
 
     // Se o buffer está cheio, não faz nada.
-    if(buf->nlines >= buf->max_lines) return;
+    if(buf->num_lines >= buf->max_lines) return;
 
     char *current_line = buf->lines[cursor->y];
 
@@ -743,17 +743,17 @@ void buffer_insert_newline(TextBuffer *buf, Cursor *cursor)
     }
 
     // Move as linhas abaixo para abrir espaço
-    for(int i = buf->nlines; i > cursor->y + 1; i--)
+    for(int i = buf->num_lines; i > cursor->y + 1; i--)
         buf->lines[i] = buf->lines[i - 1];
 
     // Insere a nova linha
     buf->lines[cursor->y + 1] = rest_of_line;
-    buf->nlines++;
+    buf->num_lines++;
 
     // Atualiza a posição do cursor
     cursor->y++;
     cursor->x = 0;
-    buf->modified = 1;
+    buf->modif = 1;
 }
 
 void buffer_delete_block(TextBuffer *buf, int start_y, int end_y, unsigned long start_x, unsigned long end_x)
@@ -794,16 +794,16 @@ void buffer_delete_block(TextBuffer *buf, int start_y, int end_y, unsigned long 
             free(buf->lines[start_y + i]);
 
         // 6. Desloca as linhas restantes para cima
-        if(end_y + 1 < buf->nlines)
+        if(end_y + 1 < buf->num_lines)
         {
             memmove(&buf->lines[start_y + 1],
                     &buf->lines[end_y + 1],
-                    (buf->nlines - (end_y + 1)) * sizeof(char*));
+                    (buf->num_lines - (end_y + 1)) * sizeof(char*));
         }
 
-        buf->nlines -= lines_to_delete_count;
+        buf->num_lines -= lines_to_delete_count;
     }
-    buf->modified = 1;
+    buf->modif = 1;
 }
 /* ------------------------------------------------------------------------- */
 /* vi: set ai et ts=4 sw=4 tw=0 wm=0 fo=croql : C config for Vim modeline    */

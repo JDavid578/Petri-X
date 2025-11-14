@@ -87,12 +87,12 @@ static void vistar_init(void)
 
     cursor.x = 0;
     cursor.y = 0;
-    cursor.top_line = 0;
+    cursor.top_linha = 0;
 
     // Inicializa campos para marcação de bloco
     cursor.mark_x = 0;
     cursor.mark_y = 0;
-    cursor.selecting_block = 0;
+    cursor.select_block = 0;
 }
 
 //Texto na tela
@@ -113,8 +113,8 @@ static void draw_text(void)
 
     for (int i = 0; i < lines_on_screen; i++)
     {
-        int buffer_line_idx = cursor.top_line + i;
-        if (buffer_line_idx >= buffer->nlines)
+        int buffer_line_idx = cursor.top_linha + i;
+        if (buffer_line_idx >= buffer->num_lines)
             break;
 
         char *line = buffer->lines[buffer_line_idx];
@@ -163,7 +163,7 @@ static void draw_text(void)
         }
         continue;
 
-        if (cursor.selecting_block)
+        if (cursor.select_block)
         {
             for (unsigned long j = 0; j < line_len; j++)
             {
@@ -190,16 +190,16 @@ static void draw_text(void)
             int pos = 0;
             while (pos < (int)line_len)
             {
-                char *found = strstr(line + pos, busca.salva);
+                char *found = strstr(line + pos, busca.save);
                 if (found)
                 {
                     int start = found - line;
                     if (start > pos)
                         printw("%.*s", start - pos, line + pos);
                     attron(COLOR_PAIR(3));
-                    printw("%s", busca.salva);
+                    printw("%s", busca.save);
                     attroff(COLOR_PAIR(3));
-                    pos = start + strlen(busca.salva);
+                    pos = start + strlen(busca.save);
                 }
                 else
                 {
@@ -219,12 +219,12 @@ static void draw_text(void)
     attron(A_REVERSE);
     mvprintw(max_y - 1, 0, "Arquivo: %-20s | Linha: %d, Col: %lu %s",
             buffer->filename[0] ? buffer->filename : "[Sem Nome]",
-            cursor.y + 1, cursor.x + 1, buffer->modified ? "(Modificado)" : "");
+            cursor.y + 1, cursor.x + 1, buffer->modif ? "(Modificado)" : "");
     int current_x_status = getcurx(stdscr);
     for (int i = current_x_status; i < max_x; i++)
         printw(" ");
     attroff(A_REVERSE);
-    move(cursor.y - cursor.top_line, cursor.x);
+    move(cursor.y - cursor.top_linha, cursor.x);
     refresh();
 }
 
@@ -241,13 +241,13 @@ static void vistar_loop(void)
         (void)max_x;
 
         // --- Lógica de Scroll e Ajuste do Cursor --- <<<< MOVIDO PRA CIMA
-        if(cursor.y < cursor.top_line)
-            cursor.top_line = cursor.y;
-        if(cursor.y >= cursor.top_line + lines_on_screen)
-            cursor.top_line = cursor.y - lines_on_screen + 1;
+        if(cursor.y < cursor.top_linha)
+            cursor.top_linha = cursor.y;
+        if(cursor.y >= cursor.top_linha + lines_on_screen)
+            cursor.top_linha = cursor.y - lines_on_screen + 1;
 
         unsigned long current_line_len = 0;
-        if(cursor.y < buffer->nlines && buffer->lines[cursor.y] != NULL)
+        if(cursor.y < buffer->num_lines && buffer->lines[cursor.y] != NULL)
             current_line_len = strlen(buffer->lines[cursor.y]);
         if(cursor.x > current_line_len)
             cursor.x = current_line_len;
@@ -311,7 +311,7 @@ static void vistar_loop(void)
                     int y = cursor.y;
 
                     // Se já estamos na última linha e no final dela, não fazemos nada
-                    if(y >= buffer->nlines - 1 && x >= strlen(buffer->lines[y]))
+                    if(y >= buffer->num_lines - 1 && x >= strlen(buffer->lines[y]))
                         break;
 
                     char *line = buffer->lines[y];
@@ -344,7 +344,7 @@ static void vistar_loop(void)
                             x++;
 
                         // 3. Define a nova posição do cursor
-                        if(x >= len && y < buffer->nlines - 1)
+                        if(x >= len && y < buffer->num_lines - 1)
                         {
                             // Se chegamos ao fim da linha, vamos para o início da próxima
                             cursor.y++;
@@ -373,8 +373,8 @@ static void vistar_loop(void)
                     // Move o cursor para baixo pelo número de linhas na tela
                     cursor.y += lines_on_screen;
                     // Garante que o cursor não passe do fim do arquivo
-                    if(cursor.y >= buffer->nlines)
-                        cursor.y = buffer->nlines - 1;
+                    if(cursor.y >= buffer->num_lines)
+                        cursor.y = buffer->num_lines - 1;
                 }
                 break;
 
@@ -394,7 +394,7 @@ static void vistar_loop(void)
                 if(cursor.x < strlen(buffer->lines[cursor.y]))
                     cursor.x++;
                 else
-                    if(cursor.y < buffer->nlines - 1)
+                    if(cursor.y < buffer->num_lines - 1)
                     {
                         cursor.y++;
                         cursor.x = 0;
@@ -412,7 +412,7 @@ static void vistar_loop(void)
                 break;
             case KEY_DOWN:
             case 24:
-                if(cursor.y < buffer->nlines - 1)
+                if(cursor.y < buffer->num_lines - 1)
                 {
                     cursor.y++;
                     unsigned long line_len = strlen(buffer->lines[cursor.y]);
@@ -436,7 +436,7 @@ static void vistar_loop(void)
                     bool found = false;
                     // Converte a posição do cursor para um índice
                     // 2. Inicia a busca a partir do PRÓXIMO caractere
-                    for(int y = cursor.y; y < buffer->nlines; y++)
+                    for(int y = cursor.y; y < buffer->num_lines; y++)
                     {
                         char *line = buffer->lines[y];
                         // Se estamos na linha inicial, começa a busca um caractere à frente
@@ -451,10 +451,10 @@ static void vistar_loop(void)
                             cursor.x = (unsigned long)(found_pos - line);
                             found = true;
                             // Lógica para centralizar a tela
-                            if(cursor.y < cursor.top_line || cursor.y >= cursor.top_line + lines_on_screen)
+                            if(cursor.y < cursor.top_linha || cursor.y >= cursor.top_linha + lines_on_screen)
                             {
-                                cursor.top_line = cursor.y - (lines_on_screen / 2);
-                                if(cursor.top_line < 0) cursor.top_line = 0;
+                                cursor.top_linha = cursor.y - (lines_on_screen / 2);
+                                if(cursor.top_linha < 0) cursor.top_linha = 0;
                             }
                             break; // Sai do for loop
                         }
@@ -471,25 +471,25 @@ static void vistar_loop(void)
                 break;
 
             case 25: // Ctrl+Y (Deletar linha atual)
-                buffer_delete_current_line(buffer, &cursor, is_help_visible);
+                buffer_apagar_linha_atual(buffer, &cursor, is_help_visible);
                 break;
             case 20: // Ctrl+T (Deletar palavra à direita)
-                buffer_delete_word_right(buffer, &cursor);
+                 buffer_apagar_palavra_direita(buffer, &cursor);
                 break;
 
             case 7: // Ctrl+G (Deletar à direita)
             case KEY_DC:
-                buffer_delete_char_right(buffer, &cursor, is_help_visible);
+                 buffer_apagar_palavra_direita(buffer, &cursor, is_help_visible);
                 break;
             case KEY_BACKSPACE:
             case 127:
             case 8:   // Ctrl+H
-                buffer_delete_char(buffer, &cursor, is_help_visible);
+                buffer_apagar_char(buffer, &cursor, is_help_visible);
                 break;
             case '\n':
             case '\r': // Enter
                 {
-                    buffer_insert_newline(buffer, &cursor);
+                    buffer_inserir_char(buffer, &cursor);
                 }
                 break;
 
@@ -513,9 +513,9 @@ static void vistar_loop(void)
                         case '9':
                             {
                                 int marker_index = next_cmd_char - '0';
-                                buffer->markers[marker_index].y = cursor.y;
-                                buffer->markers[marker_index].x = cursor.x;
-                                buffer->markers[marker_index].active = 1;
+                                buffer->marker[marker_index].y = cursor.y;
+                                buffer->marker[marker_index].x = cursor.x;
+                                buffer->marker[marker_index].active = 1;
                                 mvprintw(max_y - 1, 0, "Marcador %d definido na linha %d, coluna %lu.",
                                         marker_index, cursor.y + 1, cursor.x + 1);
                                 clrtoeol();
@@ -529,7 +529,7 @@ static void vistar_loop(void)
                             {
                                 cursor.mark_y = cursor.y;
                                 cursor.mark_x = cursor.x;
-                                cursor.selecting_block = 1;
+                                cursor.select_block = 1;
                                 mvprintw(max_y - 1, 0, "Início do bloco marcado.");
                                 clrtoeol();
                                 getch();
@@ -539,7 +539,7 @@ static void vistar_loop(void)
                         case 'K':
                         case CTRL('K'): // Marca fim do bloco
                             {
-                                if(!cursor.selecting_block)
+                                if(!cursor.select_block)
                                 {
                                     mvprintw(max_y - 1, 0, "Marque o início do bloco antes (Ctrl+KB).");
                                     clrtoeol();
@@ -556,7 +556,7 @@ static void vistar_loop(void)
                         case 121: // Ctrl+K Y → Recortar bloco
                         case 'Y':
                             {
-                                if(!cursor.selecting_block)
+                                if(!cursor.select_block)
                                 {
                                     mvprintw(max_y - 1, 0, "Nenhum bloco sendo selecionado.");
                                     clrtoeol();
@@ -587,7 +587,7 @@ static void vistar_loop(void)
                                 size_t required_size = 0;
                                 for(int y = start_y; y <= end_y; y++)
                                 {
-                                    if(y >= buffer->nlines) break;
+                                    if(y >= buffer->num_lines) break;
                                     char *line = buffer->lines[y];
                                     size_t line_len = strlen(line);
                                     unsigned long line_copy_start = (y == start_y) ? start_x : 0;
@@ -605,7 +605,7 @@ static void vistar_loop(void)
                                 size_t clipboard_pos = 0;
                                 for(int y = start_y; y <= end_y; y++)
                                 {
-                                    if(y >= buffer->nlines) break;
+                                    if(y >= buffer->num_lines) break;
                                     char *line = buffer->lines[y];
                                     size_t line_len = strlen(line);
                                     unsigned long line_copy_start = (y == start_y) ? start_x : 0;
@@ -622,14 +622,14 @@ static void vistar_loop(void)
                                 clipboard[clipboard_pos] = '\0';
 
                                 // --- Parte 2: Deleta o bloco do buffer usando a nova função ---
-                                buffer_delete_block(buffer, start_y, end_y, start_x, end_x);
+                                buffer_apagar_bloco(buffer, start_y, end_y, start_x, end_x);
 
                                 // Reposiciona o cursor no início da área deletada
                                 cursor.y = start_y;
                                 cursor.x = start_x;
 
                                 // Finaliza
-                                cursor.selecting_block = 0;
+                                cursor.select_block = 0;
                                 mvprintw(max_y - 1, 0, "Bloco recortado.");
                                 clrtoeol();
                                 getch();
@@ -640,7 +640,7 @@ static void vistar_loop(void)
                         case 'C':
                         case 3: // Ctrl+C também pode ser usado
                             {
-                                if(!cursor.selecting_block)
+                                if(!cursor.select_block)
                                 {
                                     mvprintw(max_y - 1, 0, "Nenhum bloco sendo selecionado. Use Ctrl+KB primeiro depois ctrl+KK.");
                                     clrtoeol();
@@ -663,7 +663,7 @@ static void vistar_loop(void)
                                 size_t required_size = 0;
                                 for(int y = start_y; y <= end_y; y++)
                                 {
-                                    if(y >= buffer->nlines) break;
+                                    if(y >= buffer->num_lines) break;
                                     char *line = buffer->lines[y];
                                     size_t line_len = strlen(line);
                                     unsigned long line_copy_start = (y == start_y) ? start_x : 0;
@@ -681,7 +681,7 @@ static void vistar_loop(void)
                                 size_t clipboard_pos = 0;
                                 for(int y = start_y; y <= end_y; y++)
                                 {
-                                    if(y >= buffer->nlines) break;
+                                    if(y >= buffer->num_lines) break;
                                     char *line = buffer->lines[y];
                                     size_t line_len = strlen(line);
                                     unsigned long line_copy_start = (y == start_y) ? start_x : 0;
@@ -698,7 +698,7 @@ static void vistar_loop(void)
                                 }
                                 clipboard[clipboard_pos] = '\0';
 
-                                cursor.selecting_block = 0;
+                                cursor.select_block = 0;
                                 mvprintw(max_y - 1, 0, "Bloco copiado (%zu caracteres).", required_size);
                                 clrtoeol();
                                 getch();
@@ -725,15 +725,15 @@ static void vistar_loop(void)
                                     if(char_para_colar == '\n')
                                     {
                                         // Se o caractere for uma nova linha, chama nossa função de ajuda
-                                        buffer_insert_newline(buffer, &cursor);
+                                        buffer_inserir_linhaNova(buffer, &cursor);
                                     }
                                     else
                                     {
                                         // Para todos os outros caracteres
-                                        buffer_insert_char(buffer, &cursor, char_para_colar);
+                                        buffer_inserir_linhaNova(buffer, &cursor, char_para_colar);
                                     }
                                 }
-                                buffer->modified = 1;
+                                buffer->modif = 1;
                                 mvprintw(max_y - 1, 0, "Bloco colado.");
                                 clrtoeol();
                             }
@@ -756,7 +756,7 @@ static void vistar_loop(void)
                                     if(strlen(temp_filename) > 0)
                                     {
                                         // Chamando a nova função, passando o estado de 'is_help_visible'
-                                        if(buffer_save_file_without_help(buffer, temp_filename, is_help_visible)) mvprintw(max_y - 1, 0, "Arquivo salvo!");
+                                        if(buffer_salvar_sem_ajuda(buffer, temp_filename, is_help_visible)) mvprintw(max_y - 1, 0, "Arquivo salvo!");
                                         else mvprintw(max_y - 1, 0, "Erro ao salvar!");
                                     }
                                     else
@@ -765,7 +765,7 @@ static void vistar_loop(void)
                                 else
                                 {
                                     // Chamando a nova função também aqui
-                                    if(buffer_save_file_without_help(buffer, buffer->filename, is_help_visible)) mvprintw(max_y - 1, 0, "Arquivo salvo!");
+                                    if(buffer_salvar_sem_ajuda(buffer, buffer->filename, is_help_visible)) mvprintw(max_y - 1, 0, "Arquivo salvo!");
                                     else mvprintw(max_y - 1, 0, "Erro ao salvar!");
                                 }
                                 clrtoeol();
@@ -784,12 +784,12 @@ static void vistar_loop(void)
                                 noecho();
                                 if(strlen(open_filename_buf) > 0)
                                 {
-                                    if(buffer_open_file(buffer, open_filename_buf))
+                                    if(buffer_abrir_file(buffer, open_filename_buf))
                                     {
                                         mvprintw(max_y - 1, 0, "Arquivo carregado!");
                                         cursor.x = 0;
                                         cursor.y = 0;
-                                        cursor.top_line = 0;
+                                        cursor.top_linha = 0;
                                     }
                                     else
                                         mvprintw(max_y - 1, 0, "Erro ao abrir!");
@@ -805,7 +805,7 @@ static void vistar_loop(void)
                         case 'Q':
                         case 17: // Sair
                             {
-                                if(buffer->modified)
+                                if(buffer->modif)
                                 {
                                     mvprintw(max_y - 1, 0, "Arquivo modificado. Sair sem salvar? (s/n)");
                                     clrtoeol();
@@ -825,10 +825,10 @@ static void vistar_loop(void)
                                 clrtoeol();
                                 if(tolower(getch()) == 's')
                                 {
-                                    buffer_reset(buffer);
+                                    buffer_resetar(buffer);
                                     cursor.x = 0;
                                     cursor.y = 0;
-                                    cursor.top_line = 0;
+                                    cursor.top_linha = 0;
                                     mvprintw(max_y - 1, 0, "Novo buffer criado.");
                                 }
                                 else
@@ -856,12 +856,12 @@ static void vistar_loop(void)
                     if(next_char >= '0' && next_char <= '9')
                     {
                         int marker_index = next_char - '0';
-                        if(buffer->markers[marker_index].active)
+                        if(buffer->marker[marker_index].active)
                         {
-                            int target_y = buffer->markers[marker_index].y;
-                            unsigned long target_x = buffer->markers[marker_index].x;
+                            int target_y = buffer->marker[marker_index].y;
+                            unsigned long target_x = buffer->marker[marker_index].x;
 
-                            if(target_y < buffer->nlines && target_x <= strlen(buffer->lines[target_y]))
+                            if(target_y < buffer->num_lines && target_x <= strlen(buffer->lines[target_y]))
                             {
                                 cursor.y = target_y;
                                 cursor.x = target_x;
@@ -888,15 +888,15 @@ static void vistar_loop(void)
                                     mvprintw(max_y - 1, 0, "Buscar por: ");
                                     clrtoeol();
                                     refresh();
-                                    getnstr(busca.salva, SEARCH_MAX);
+                                    getnstr(busca.save, SEARCH_MAX);
                                     noecho();
 
-                                    if(strlen(busca.salva) > 0)
+                                    if(strlen(busca.save) > 0)
                                     {
-                                        for(int i = 0; i < buffer->nlines; i++)
+                                        for(int i = 0; i < buffer->num_lines; i++)
                                         {
                                             char *line = buffer->lines[i];
-                                            char *found_pos = strstr(line, busca.salva);
+                                            char *found_pos = strstr(line, busca.save);
 
                                             while(found_pos != NULL)
                                             {
@@ -909,19 +909,19 @@ static void vistar_loop(void)
                                                 busca.total++;
 
                                                 /* movendo a busca para a proxima palavra */
-                                                found_pos = strstr(found_pos + 1, busca.salva);
+                                                found_pos = strstr(found_pos + 1, busca.save);
                                             }
                                         }
                                         if(busca.total > 0)
                                         {
                                             busca.atual = 0;
                                             /* indo para a primeira ocorrencia */
-                                            cursor.y = busca.posicao[0].y_pos;
-                                            cursor.x = busca.posicao[0].x_pos;
-                                            mvprintw(max_y - 1, 0, "Encontradas %d ocorrencias da palavra (%s)", busca.total, busca.salva);
+                                            cursor.y = busca.pos[0].y_pos;
+                                            cursor.x = busca.pos[0].x_pos;
+                                            mvprintw(max_y - 1, 0, "Encontradas %d ocorrencias da palavra (%s)", busca.total, busca.save);
                                         }
                                         else
-                                            mvprintw(max_y - 1, 0, "PALAVRA(%s) NAO ENCONTRADA.", busca.salva);
+                                            mvprintw(max_y - 1, 0, "PALAVRA(%s) NAO ENCONTRADA.", busca.save);
                                     }
                                     else
                                         mvprintw(max_y - 1, 0, "BUSCA VAZIA..");
@@ -937,7 +937,7 @@ static void vistar_loop(void)
 
                             case 4:
                             case 'd': // Ctrl+QD (Fim da linha)
-                                if(cursor.y < buffer->nlines)
+                                if(cursor.y < buffer->num_lines)
                                     cursor.x = strlen(buffer->lines[cursor.y]);
                                 break;
 
@@ -945,14 +945,14 @@ static void vistar_loop(void)
                             case 'r': // Ctrl+QR (Início do documento)
                                 cursor.y = 0;
                                 cursor.x = 0;
-                                cursor.top_line = 0;
+                                cursor.top_linha = 0;
                                 break;
 
                             case 3:
                             case 'c': // Ctrl+QC (Fim do documento)
-                                if(buffer->nlines > 0)
+                                if(buffer->num_lines > 0)
                                 {
-                                    cursor.y = buffer->nlines - 1;
+                                    cursor.y = buffer->num_lines - 1;
                                     cursor.x = strlen(buffer->lines[cursor.y]);
                                 }
                                 break;
@@ -973,15 +973,15 @@ static void vistar_loop(void)
                     int help_pos = 0;
                     if(is_help_visible == 0)
                     {
-                        help_pos = insert_help_screen(buffer, &cursor);
+                        help_pos = inserir_tela_ajuda(buffer, &cursor);
                         is_help_visible = 1;
                     }
                     else
                     {
-                        remove_Help_screen(buffer, &cursor, help_pos);
+                        remover_tela_ajuda(buffer, &cursor, help_pos);
                         is_help_visible = 0;
-                        if(buffer->nlines == 0)
-                            buffer_insert_line(buffer, 0, "");
+                        if(buffer->num_lines == 0)
+                            buffer_inserir_linha(buffer, 0, "");
                     }
                 }
                 continue;
@@ -992,9 +992,9 @@ static void vistar_loop(void)
                     else
                     {
                         busca.atual = (busca.atual + 1) % busca.total;
-                        cursor.y = busca.posicao[busca.atual].y_pos;
-                        cursor.x = busca.posicao[busca.atual].x_pos;
-                        mvprintw(max_y - 1, 0, "Ocorrencia[%d] de %d. POS(%d,%d)", busca.atual + 1, busca.total, busca.posicao[busca.atual].x_pos, busca.posicao[busca.atual].y_pos);
+                        cursor.y = busca.pos[busca.atual].y_pos;
+                        cursor.x = busca.pos[busca.atual].x_pos;
+                        mvprintw(max_y - 1, 0, "Ocorrencia[%d] de %d. POS(%d,%d)", busca.atual + 1, busca.total, busca.pos[busca.atual].x_pos, busca.pos[busca.atual].y_pos);
                     }
                     clrtoeol();
                     getch();
@@ -1007,9 +1007,9 @@ static void vistar_loop(void)
                     else
                     {
                         busca.atual = 0;
-                        cursor.y = busca.posicao[0].y_pos;
-                        cursor.x = busca.posicao[0].x_pos;
-                        mvprintw(max_y - 1, 0, "Ocorrencia[0]. POS(%d,%d)", busca.posicao[0].x_pos, busca.posicao[0].y_pos);
+                        cursor.y = busca.pos[0].y_pos;
+                        cursor.x = busca.pos[0].x_pos;
+                        mvprintw(max_y - 1, 0, "Ocorrencia[0]. POS(%d,%d)", busca.pos[0].x_pos, busca.pos[0].y_pos);
                     }
                     clrtoeol();
                     getch();
@@ -1019,7 +1019,7 @@ static void vistar_loop(void)
                 // --- Inserção de Texto ---
             default:
                 if(isprint(ch))
-                    buffer_insert_char(buffer, &cursor, ch);
+                    buffer_inserir_char(buffer, &cursor, ch);
                 break;
         }
 
@@ -1030,11 +1030,11 @@ static void vistar_loop(void)
             cursor.x = 0;
         }
         // --- Lógica de Scroll e Ajuste do Cursor ---
-        if(cursor.y < cursor.top_line)
-            cursor.top_line = cursor.y;
-        if(cursor.y >= cursor.top_line + lines_on_screen)
-            cursor.top_line = cursor.y - lines_on_screen + 1;
-        if(cursor.y < buffer->nlines && buffer->lines[cursor.y] != NULL)
+        if(cursor.y < cursor.top_linha)
+            cursor.top_linha = cursor.y;
+        if(cursor.y >= cursor.top_linha + lines_on_screen)
+            cursor.top_linha = cursor.y - lines_on_screen + 1;
+        if(cursor.y < buffer->num_lines && buffer->lines[cursor.y] != NULL)
             current_line_len = strlen(buffer->lines[cursor.y]);
         if(cursor.x > current_line_len)
             cursor.x = current_line_len;

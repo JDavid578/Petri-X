@@ -37,29 +37,47 @@
 #include <stdbool.h>
 // --- Declarações de Funções da Biblioteca ---
 
-TextBuffer *buffer_create(void);
-void buffer_free(TextBuffer *buf);
-int buffer_insert_char(TextBuffer *buf, Cursor *cursor, int c);
-int buffer_delete_char(TextBuffer *buf, Cursor *cursor, bool is_help_visible);
-int buffer_open_file(TextBuffer *buf, const char *filename);
-int buffer_save_file(TextBuffer *buf, const char *filename);
-void buffer_delete_char_right(TextBuffer *buf, Cursor *cursor, bool is_help_visible);
-void buffer_delete_word_right(TextBuffer *buf, Cursor *cursor);
-void buffer_delete_current_line(TextBuffer *buf, Cursor *cursor, bool is_help_visible);
-void getCntrlNum(int max_y);
-void cHELP();
-page_st savingWindow(int max_y);
-void printSTsaved(page_st saved, int start_line);
-void cleanHelp(void);
-void cleanWindow(int max_y);
-void putSTsaved(page_st saved, TextBuffer *buf, Cursor *cursor);
-int buffer_insert_line(TextBuffer *buf, int y, const char *str);
-int insert_help_screen(TextBuffer *buf, Cursor *cursor);
-void buffer_reset(TextBuffer *buf);
-void remove_Help_screen(TextBuffer *buf, Cursor *cursor, int y_pos);
-void buffer_insert_newline(TextBuffer *buf, Cursor *cursor);
-int buffer_save_file_without_help(TextBuffer *buf, const char *filename, bool is_help_visible);
-void buffer_delete_block(TextBuffer *buf, int start_y, int end_y, unsigned long start_x, unsigned long end_x);
+// Criação e Liberação do Buffer
+TextBuffer *buffer_create(void);      // (buffer_create)
+void buffer_free(TextBuffer *buf);    // (buffer_free)
+
+// Inserção e Remoção de Caracteres
+int buffer_inserir_char(TextBuffer *buf, Cursor *cursor, int c);                 // (buffer_insert_char)
+int buffer_apagar_char(TextBuffer *buf, Cursor *cursor, bool ajuda_visivel);     // (buffer_delete_char)
+void buffer_apagar_char_direita(TextBuffer *buf, Cursor *cursor, bool ajuda_visivel); // (buffer_delete_char_right)
+
+// Operações com Palavras e Linhas
+void buffer_apagar_palavra_direita(TextBuffer *buf, Cursor *cursor);     // (buffer_delete_word_right)
+void buffer_apagar_linha_atual(TextBuffer *buf, Cursor *cursor, bool ajuda_visivel);
+// (buffer_delete_current_line)
+
+int buffer_inserir_linha(TextBuffer *buf, int y, const char *str);       // (buffer_insert_line)
+void buffer_inserir_linhaNova(TextBuffer *buf, Cursor *cursor);         // (buffer_insert_newline)
+void buffer_apagar_bloco(TextBuffer *buf, int y_inicio, int y_fim,
+                         unsigned long x_inicio, unsigned long x_fim);   // (buffer_delete_block)
+
+// Abertura e Salvamento de Arquivos
+int buffer_abrir_file(TextBuffer *buf, const char *filename);         // (buffer_open_file)
+int buffer_salvar_file(TextBuffer *buf, const char *filename);        // (buffer_save_file)
+int buffer_salvar_sem_ajuda(TextBuffer *buf, const char *filename,
+                             bool ajuda_visivel);                         // (buffer_save_file_without_help)
+
+// Manipulação da Tela de Ajuda
+int inserir_tela_ajuda(TextBuffer *buf, Cursor *cursor);                 // (insert_help_screen)
+void remover_tela_ajuda(TextBuffer *buf, Cursor *cursor, int pos_y);     // (remove_Help_screen)
+void limpar_ajuda(void);                                                 // (cleanHelp)
+
+// Operações de Interface / Janela
+void obter_num_control(int max_y);                                   // (getCntrlNum)
+void chamar_ajuda(void);                                                 // (cHELP)
+page_st janela_salvamento(int max_y);                                    // (savingWindow)
+void mostrar_save(page_st saved, int linha_inicio);               // (printSTsaved)
+void limpar_janela(int max_y);                                           // (cleanWindow)
+void aplicar_save(page_st saved, TextBuffer *buf, Cursor *cursor); // (putSTsaved)
+
+// Reset do Buffer
+void buffer_resetar(TextBuffer *buf);                                    // (buffer_reset)
+
 #endif
 
 /* ------------------------------------------------------------------------- */
