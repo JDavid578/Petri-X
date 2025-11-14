@@ -28,24 +28,20 @@
 /* ------------------------------------------------------------------------- */
 /* includes */
 
-#include <curses.h>
-#include <ncurses.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
 #include "vistar.h"
 #include "libvistar.h"
 
-// --- Declarações de Funções (Protótipos) ---
+//Define
+#define CTRL(x) ((x) & 0x1F)
+
+//Declarações de Funções (Protótipos)
 static void vistar_init(void);
 static void vistar_loop(void);
 static void vistar_cleanup(void);
 static void draw_text(void);
 void cHELP(void);
 
-// --- Variáveis Globais Estáticas (Estado do Editor) ---
+//Variáveis Globais Estáticas (Estado do Editor)
 static TextBuffer *buffer;
 static Cursor cursor;
 static bool is_help_visible = false;
@@ -53,7 +49,9 @@ static char *clipboard = NULL;
 static SEARCH busca = {0};
 static char last_search_term[SEARCH_MAX + 1] = "";
 static WINDOW *help_win = NULL;
-// --- Função Principal ---
+
+
+//(função Principal)
 int main(void)
 {
     vistar_init();
@@ -62,10 +60,8 @@ int main(void)
     return 0;
 }
 
-// --- Define ---
-#define CTRL(x) ((x) & 0x1F)
 
-// --- Inicialização do Editor ---
+//Inicialização do Editor
 static void vistar_init(void)
 {
     initscr();
@@ -98,7 +94,8 @@ static void vistar_init(void)
     cursor.mark_y = 0;
     cursor.selecting_block = 0;
 }
-// --- Desenho da Tela ---
+
+//Texto na tela
 static void draw_text(void)
 {
     int max_y, max_x;
@@ -231,7 +228,7 @@ static void draw_text(void)
     refresh();
 }
 
-// --- Loop Principal do Editor ---
+//Loop Principal do Editor
 static void vistar_loop(void)
 {
     int ch;

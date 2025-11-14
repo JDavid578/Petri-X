@@ -27,7 +27,12 @@
 
 #ifndef LIBVISTAR_H
 #define LIBVISTAR_H
-
+#include <curses.h>
+#include <ncurses.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
 #include "vistar.h"
 #include <stdbool.h>
 // --- Declarações de Funções da Biblioteca ---

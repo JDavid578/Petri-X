@@ -24,14 +24,10 @@
  *   Webpage: www.beco.cc                                                    *
  *   Phone: +55 (81) 3184-7555                                               *
  *****************************************************************************/
-#include <curses.h>
-#include <ncurses.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+
 #include "libvistar.h"
 #include "vistar.h"
-#include <ctype.h>
+#include <malloc.h>
 // --- Funções de Gerenciamento do Buffer ---
 
 TextBuffer *buffer_create(void)
