@@ -75,7 +75,7 @@ TextBuffer *buffer_create(void)
     return buf;
 }
 
-void free_Buffer(TextBuffer *buf)
+void buffer_free(TextBuffer *buf)
 {
     if(!buf) return;
 
@@ -588,7 +588,7 @@ int buffer_inserir_linha(TextBuffer *buf, int y, const char *str)
 
     return 1;
 }
-int insert_help_screen(TextBuffer *buf, Cursor *cursor)
+int inserir_tela_ajuda(TextBuffer *buf, Cursor *cursor)
 {
     if(!buf || !cursor)
         return -1;
@@ -621,7 +621,7 @@ int insert_help_screen(TextBuffer *buf, Cursor *cursor)
  * @param is_help_visible Um booleano que indica se a ajuda está atualmente no buffer.
  * @return int 1 em caso de sucesso, 0 em caso de falha.
  */
-int buffer_save_file_without_help(TextBuffer *buf, const char *filename, bool is_help_visible)
+int buffer_salvar_sem_ajuda(TextBuffer *buf, const char *filename, bool ajuda_visivel)
 {
     if(!buf || !filename) return 0;
 
@@ -636,7 +636,7 @@ int buffer_save_file_without_help(TextBuffer *buf, const char *filename, bool is
     // Determina a partir de qual linha devemos começar a salvar.
     // Se a ajuda estiver visível, pulamos as primeiras HELP_LINES.
     int start_line = 0;
-    if(is_help_visible)
+    if(ajuda_visivel)
         start_line = HELP_LINES;
 
     // Itera a partir da 'start_line' em vez de 0.
