@@ -75,7 +75,7 @@ TextBuffer *buffer_create(void)
     return buf;
 }
 
-void buffer_free(TextBuffer *buf)
+void free_Buffer(TextBuffer *buf)
 {
     if(!buf) return;
 
@@ -92,7 +92,7 @@ void buffer_free(TextBuffer *buf)
 
 // --- Funções de Edição do Buffer ---
 
-int buffer_insert_char(TextBuffer *buf, Cursor *cursor, int c)
+int buffer_inserir_char(TextBuffer *buf, Cursor *cursor, int c)
 {
     if(!buf || !cursor) return 0;
     if(cursor->y >= buf->num_lines || cursor->y < 0) return 0;
@@ -123,7 +123,7 @@ int buffer_insert_char(TextBuffer *buf, Cursor *cursor, int c)
     return 1;
 }
 
-int buffer_delete_char(TextBuffer *buf, Cursor *cursor, bool is_help_visible)   // Deleta à esquerda (Backspace)
+int buffer_apagar_char(TextBuffer *buf, Cursor *cursor, bool is_help_visible)   // Deleta à esquerda (Backspace)
 {
     if(!buf || !cursor) return 0;
     if(cursor->y >= buf->num_lines || cursor->y < 0) return 0;
@@ -192,7 +192,7 @@ int buffer_delete_char(TextBuffer *buf, Cursor *cursor, bool is_help_visible)   
 
 // --- Funções de Arquivo ---
 
-int buffer_open_file(TextBuffer *buf, const char *filename)
+int buffer_abrir_file(TextBuffer *buf, const char *filename)
 {
     if(!buf || !filename) return 0;
 
@@ -252,7 +252,7 @@ int buffer_open_file(TextBuffer *buf, const char *filename)
     return 1;
 }
 
-int buffer_save_file(TextBuffer *buf, const char *filename)
+int buffer_salvar_file(TextBuffer *buf, const char *filename)
 {
     if(!buf || !filename) return 0;
 
@@ -281,7 +281,7 @@ int buffer_save_file(TextBuffer *buf, const char *filename)
 
 // --- Apagar texto a direita ---
 
-void buffer_delete_char_right(TextBuffer *buf, Cursor *cursor, bool is_help_visible)
+void buffer_apagar_char_direita(TextBuffer *buf, Cursor *cursor, bool ajuda_visivel)
 {
     if(!buf || !cursor || cursor->y >= buf->num_lines)
     {
@@ -308,7 +308,7 @@ void buffer_delete_char_right(TextBuffer *buf, Cursor *cursor, bool is_help_visi
             // Movemos o cursor para o início da próxima linha.
             cursor->y++;
             cursor->x = 0;
-            buffer_delete_char(buf, cursor, is_help_visible);
+            buffer_apagar_char(buf, cursor, ajuda_visivel);
         }
 }
 
@@ -316,7 +316,7 @@ void buffer_delete_char_right(TextBuffer *buf, Cursor *cursor, bool is_help_visi
 
 // --- deletar palavra a direita --- //
 
-void buffer_delete_word_right(TextBuffer *buf, Cursor *cursor)
+void buffer_apagar_palavra_direita(TextBuffer *buf, Cursor *cursor)
 {
     if(!buf || !cursor || cursor->y >= buf->num_lines)
     {
@@ -353,7 +353,7 @@ void buffer_delete_word_right(TextBuffer *buf, Cursor *cursor)
 
 // --- deletar a linha toda --- //
 
-void buffer_delete_current_line(TextBuffer *buf, Cursor *cursor, bool is_help_visible)
+void buffer_apagar_linha_atual(TextBuffer *buf, Cursor *cursor, bool is_help_visible)
 {
     if(!buf || !cursor || buf->num_lines == 0 || cursor->y >= buf->num_lines)
     {
@@ -555,13 +555,13 @@ void putSTsaved(page_st saved, TextBuffer *buf, Cursor *cursor)
         for(x = 0; x < saved.page[y].quant_cols; x++)
         {
             ch = (int)saved.page[y].linha[x];
-            buffer_insert_char(buf, cursor, ch);
+            buffer_inserir_char(buf, cursor, ch);
         }
-        buffer_insert_char(buf, cursor, '\n');
+        buffer_inserir_char(buf, cursor, '\n');
     }
 }
 
-int buffer_insert_line(TextBuffer *buf, int y, const char *str)
+int buffer_inserir_linha(TextBuffer *buf, int y, const char *str)
 {
     if(!buf || !str || y < 0 || y > buf->num_lines || buf->num_lines >=  buf->max_lines)
         return 0;
@@ -596,15 +596,15 @@ int insert_help_screen(TextBuffer *buf, Cursor *cursor)
     int saved_y = cursor->y + HELP_LINES;
 
     int base_y = 0;
-    buffer_insert_line(buf, base_y++, "*****************************************************************************************************************************************************");
-    buffer_insert_line(buf, base_y++, "*                  ------------------    ---------------------------------------------------------------------------------------------------------- *");
-    buffer_insert_line(buf, base_y++, "*         (^E)     |    MOVE TO     | -> | ^A <Word   ^F >Word   ^QS Bol    ^QD Eol    ^QR Top   ^QC Bottom  PGUP Scroll-up   PGDN Scroll-down    | *");
-    buffer_insert_line(buf, base_y++, "*          |       |EDITION CONTROLS| -> | ^G Del char   ^H Backspace   ^T Del word   ^Y Del line   ^QF Search   ^K0-9 Set mark   ^Q0-9 Goto mark | *");
-    buffer_insert_line(buf, base_y++, "*    (^S)--o--(^D) | BLOCK CONTROLS | -> | ^KB Begin  ^KK End  ^KC Copy  ^KV Paste  ^KY Cut                                                       | *");
-    buffer_insert_line(buf, base_y++, "*          |       | FILE OPERATORS | -> | ^KS Save   ^KO Open   ^KN New    ^KQ Exit                                                              | *");
-    buffer_insert_line(buf, base_y++, "*         (^X)     |      HELP      | -> | ^? Toggle Help                                                                                         | *");
-    buffer_insert_line(buf, base_y++, "*                  ------------------    ---------------------------------------------------------------------------------------------------------- *");
-    buffer_insert_line(buf, base_y++, "*****************************************************************************************************************************************************");
+    buffer_inserir_linha(buf, base_y++, "*****************************************************************************************************************************************************");
+    buffer_inserir_linha(buf, base_y++, "*                  ------------------    ---------------------------------------------------------------------------------------------------------- *");
+    buffer_inserir_linha(buf, base_y++, "*         (^E)     |    MOVE TO     | -> | ^A <Word   ^F >Word   ^QS Bol    ^QD Eol    ^QR Top   ^QC Bottom  PGUP Scroll-up   PGDN Scroll-down    | *");
+    buffer_inserir_linha(buf, base_y++, "*          |       |EDITION CONTROLS| -> | ^G Del char   ^H Backspace   ^T Del word   ^Y Del line   ^QF Search   ^K0-9 Set mark   ^Q0-9 Goto mark | *");
+    buffer_inserir_linha(buf, base_y++, "*    (^S)--o--(^D) | BLOCK CONTROLS | -> | ^KB Begin  ^KK End  ^KC Copy  ^KV Paste  ^KY Cut                                                       | *");
+    buffer_inserir_linha(buf, base_y++, "*          |       | FILE OPERATORS | -> | ^KS Save   ^KO Open   ^KN New    ^KQ Exit                                                              | *");
+    buffer_inserir_linha(buf, base_y++, "*         (^X)     |      HELP      | -> | ^? Toggle Help                                                                                         | *");
+    buffer_inserir_linha(buf, base_y++, "*                  ------------------    ---------------------------------------------------------------------------------------------------------- *");
+    buffer_inserir_linha(buf, base_y++, "*****************************************************************************************************************************************************");
 
 
     cursor->x = saved_x;
@@ -660,7 +660,7 @@ int buffer_save_file_without_help(TextBuffer *buf, const char *filename, bool is
     return 1;
 }
 //----------------------------------
-void buffer_reset(TextBuffer *buf)
+void buffer_resetar(TextBuffer *buf)
 {
     if(!buf) return;
     for(int i = 0; i < buf->num_lines; i++)
@@ -684,7 +684,7 @@ void buffer_reset(TextBuffer *buf)
     for(int i = 0; i < 10; i++)
         buf->marker[i].active = 0;
 }
-void remove_Help_screen(TextBuffer *buf, Cursor *cursor, int y_pos)
+void remover_tela_ajuda(TextBuffer *buf, Cursor *cursor, int y_pos)
 {
     if(!buf || !cursor)
         return;
@@ -719,7 +719,7 @@ void remove_Help_screen(TextBuffer *buf, Cursor *cursor, int y_pos)
 }
 
 // Adiciona uma nova linha no buffer na posição do cursor
-void buffer_insert_newline(TextBuffer *buf, Cursor *cursor)
+void buffer_inserir_linhaNova(TextBuffer *buf, Cursor *cursor)
 {
     if(!buf || !cursor || cursor->y >= buf->num_lines) return;
 
@@ -756,7 +756,7 @@ void buffer_insert_newline(TextBuffer *buf, Cursor *cursor)
     buf->modif = 1;
 }
 
-void buffer_delete_block(TextBuffer *buf, int start_y, int end_y, unsigned long start_x, unsigned long end_x)
+void buffer_apagar_bloco(TextBuffer *buf, int start_y, int end_y, unsigned long start_x, unsigned long end_x)
 {
     if(start_y == end_y)
     {

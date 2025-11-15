@@ -43,6 +43,7 @@ void buffer_free(TextBuffer *buf);    // (buffer_free)
 
 // Inserção e Remoção de Caracteres
 int buffer_inserir_char(TextBuffer *buf, Cursor *cursor, int c);                 // (buffer_insert_char)
+int buffer_inserir_char(TextBuffer *buf, Cursor *cursor, int c);
 int buffer_apagar_char(TextBuffer *buf, Cursor *cursor, bool ajuda_visivel);     // (buffer_delete_char)
 void buffer_apagar_char_direita(TextBuffer *buf, Cursor *cursor, bool ajuda_visivel); // (buffer_delete_char_right)
 

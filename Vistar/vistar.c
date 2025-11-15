@@ -28,8 +28,8 @@
 /* ------------------------------------------------------------------------- */
 /* includes */
 
-#include "vistar.h"
 #include "libvistar.h"
+#include "vistar.h"
 
 //Define
 #define CTRL(x) ((x) & 0x1F)
@@ -479,7 +479,7 @@ static void vistar_loop(void)
 
             case 7: // Ctrl+G (Deletar à direita)
             case KEY_DC:
-                 buffer_apagar_palavra_direita(buffer, &cursor, is_help_visible);
+                 buffer_apagar_palavra_direita(buffer, &cursor);
                 break;
             case KEY_BACKSPACE:
             case 127:
@@ -489,7 +489,7 @@ static void vistar_loop(void)
             case '\n':
             case '\r': // Enter
                 {
-                    buffer_inserir_char(buffer, &cursor);
+                    buffer_inserir_char(buffer, &cursor, ch);
                 }
                 break;
 
@@ -730,7 +730,7 @@ static void vistar_loop(void)
                                     else
                                     {
                                         // Para todos os outros caracteres
-                                        buffer_inserir_linhaNova(buffer, &cursor, char_para_colar);
+                                        buffer_inserir_linhaNova(buffer, &cursor);
                                     }
                                 }
                                 buffer->modif = 1;
@@ -904,8 +904,8 @@ static void vistar_loop(void)
                                                 int y = i;
 
                                                 /* Achou a palavra salvou a pos */
-                                                busca.posicao[busca.total].x_pos = x;
-                                                busca.posicao[busca.total].y_pos = y;
+                                                busca.pos[busca.total].x_pos = x;
+                                                busca.pos[busca.total].y_pos = y;
                                                 busca.total++;
 
                                                 /* movendo a busca para a proxima palavra */
