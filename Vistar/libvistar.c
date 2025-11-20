@@ -252,6 +252,8 @@ int buffer_abrir_file(TextBuffer *buf, const char *filename)
     return 1;
 }
 
+//testar remover para ver se ainda funciona
+/*
 int buffer_salvar_file(TextBuffer *buf, const char *filename)
 {
     if(!buf || !filename) return 0;
@@ -276,11 +278,13 @@ int buffer_salvar_file(TextBuffer *buf, const char *filename)
     buf->modif = 0;
     return 1;
 }
-
+*/
 
 
 // --- Apagar texto a direita ---
 
+//testar remover para ver se ainda funciona
+/*
 void buffer_apagar_char_direita(TextBuffer *buf, Cursor *cursor, bool ajuda_visivel)
 {
     if(!buf || !cursor || cursor->y >= buf->num_lines)
@@ -311,7 +315,7 @@ void buffer_apagar_char_direita(TextBuffer *buf, Cursor *cursor, bool ajuda_visi
             buffer_apagar_char(buf, cursor, ajuda_visivel);
         }
 }
-
+*/
 
 
 // --- deletar palavra a direita --- //
@@ -421,6 +425,7 @@ void buffer_apagar_linha_atual(TextBuffer *buf, Cursor *cursor, bool is_help_vis
 }
 
 // --- Funções de Auxilio ---
+/*
 void getCntrlNum(int max_y)
 {
     int ch;
@@ -446,6 +451,8 @@ void getCntrlNum(int max_y)
         refresh();
     }
 }
+*/
+/*
 void cHELP()
 {
     page_st cHELP;
@@ -472,6 +479,9 @@ void cHELP()
 
 }
 
+*/
+//testar remover para ver se ainda funciona
+/*
 page_st savingWindow(int max_y)
 {
     page_st saved;
@@ -481,10 +491,10 @@ page_st savingWindow(int max_y)
     if(max_y > S_LINES)
         max_y = S_LINES;
 
-    /*mvprintw(max_y-1, 0, "chars_read == %d",chars_read);
+      *mvprintw(max_y-1, 0, "chars_read == %d",chars_read); //apagar as 4 linhas seguintes
       clrtoeol();
       refresh();
-      getch();*/
+      getch();
     for(int y = 0; y < max_y - 1; y++)
     {
         memset(saved.page[y].linha, 0, S_COL);
@@ -505,19 +515,19 @@ page_st savingWindow(int max_y)
             saved.page[y].linha[0] = '\0';
             saved.page[y].quant_cols = 0;
         }
-        /*mvprintw(max_y-1, 0, "linha[%d] (%d chars): '%.50s...'",y,chars_read,saved.page[y].linha);
+        mvprintw(max_y-1, 0, "linha[%d] (%d chars): '%.50s...'",y,chars_read,saved.page[y].linha); //apagar as 3 linhas seguintes
           refresh();
-          getch();*/
+          getch();
         saved.quant_lines++;
     }
-    /*mvprintw(max_y-1, 0, "chars_read == %d",chars_read);
+      mvprintw(max_y-1, 0, "chars_read == %d",chars_read); //apagar as 4 linhas seguintes
       clrtoeol();
       refresh();
-      getch();*/
+      getch();
 
     return saved;
 }
-
+//testar remover para ver se ainda funciona
 void printSTsaved(page_st saved, int start_line)
 {
     int y, x, ch, begin;
@@ -532,6 +542,8 @@ void printSTsaved(page_st saved, int start_line)
     }
     refresh();
 }
+
+//testar remover para ver se ainda funciona
 void cleanHelp(void)
 {
     mvprintw(1, 0, " ");
@@ -541,12 +553,14 @@ void cleanHelp(void)
     mvprintw(5, 0, " ");
     mvprintw(6, 0, " ");
 }
-
+//testar remover para ver se ainda funciona
 void cleanWindow(int max_y)
 {
     for(int y = 0; y < max_y - 1; y++)
         mvprintw(y, 0, " ");
 }
+
+//testar remover para ....
 void putSTsaved(page_st saved, TextBuffer *buf, Cursor *cursor)
 {
     int y, x, ch;
@@ -561,6 +575,7 @@ void putSTsaved(page_st saved, TextBuffer *buf, Cursor *cursor)
     }
 }
 
+*/
 int buffer_inserir_linha(TextBuffer *buf, int y, const char *str)
 {
     if(!buf || !str || y < 0 || y > buf->num_lines || buf->num_lines >=  buf->max_lines)
@@ -621,6 +636,8 @@ int inserir_tela_ajuda(TextBuffer *buf, Cursor *cursor)
  * @param is_help_visible Um booleano que indica se a ajuda está atualmente no buffer.
  * @return int 1 em caso de sucesso, 0 em caso de falha.
  */
+
+
 int buffer_salvar_sem_ajuda(TextBuffer *buf, const char *filename, bool ajuda_visivel)
 {
     if(!buf || !filename) return 0;
